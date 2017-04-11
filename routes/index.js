@@ -230,4 +230,45 @@ module.exports = function(app){
             })
         })
     })
+    //添加编辑路由
+    app.get('/edit/:name/:minute/:title',checkLogin);
+    app.get('/edit/:name/:minute/:title',function(req,res){
+        Post.edit(req.params.name,req.params.minute,req.params.title,function(err,post){
+            if(err){
+                req.flash('error',err);
+                res.redirect('back');
+            }
+            res.render('edit',{
+                title:"编辑页面",
+                user:req.session.user,
+                success:req.flash('success').toString(),
+                error:req.flash('error').toString(),
+                post:post
+            })
+        })
+    })
+    //修改行为
+    app.post('/edit/:name/:minute/:title',checkLogin);
+    app.post('/edit/:name/:minute/:title',function(req,res){
+        Post.update(req.params.name,req.params.minute,req.params.title,req.body.post,function(err){
+            var url = '/u/'+ req.params.name + '/' + req.params.minute + '/' + req.params.title;
+            if(err){
+                req.flash('error',err);
+                res.redirect(url);
+            }
+            req.flash('success','发布成功');
+            res.redirect(url);
+        })
+    })
+    app.get('/remove/:name/:minute/:title',checkLogin);
+    app.get('/remove/:name/:minute/:title',function(req,res){
+        Post.remove(req.params.name,req.params.minute,req.params.title,function(err){
+            if(err){
+                req.flash('error',err);
+                res.redirect('back');
+            }
+            req.flash('success','删除成功');
+            res.redirect('/');
+        })
+    })
 }
