@@ -3,6 +3,7 @@
  */
 //1.连接数据库
 var mongo = require('./db');
+var markdown = require('markdown').markdown;
 //2.设计Post类
 function Post(name,title,post){
     this.name = name;
@@ -50,7 +51,7 @@ Post.prototype.save = function(callback){
     })
 }
 //获取所有的文章(根据name条件)
-Post.get = function(name,callback){
+Post.getAll = function(name,callback){
     mongo.open(function(err,db){
         if(err){
             return callback(err);
@@ -69,8 +70,40 @@ Post.get = function(name,callback){
                 if(err){
                     return callback(err);
                 }
+                //把文章的格式，先用markdown解析一下
+                //这样，用户就可以直接在内容中使用markdown的语法
+                docs.forEach(function(doc){
+                    doc.post = markdown.toHTML(doc.post);
+                })
                 return callback(null,docs);//数组形式返回所有的文章.
             })
         })
     })
 }
+//获取一篇文章
+Post.getOne = function(name,minute,title,callback){
+    mongo.open(function(err,db){
+        if(err){
+            return callback(err);
+        }
+        db.collection('posts',function(err,collection){
+            if(err){
+                mongo.close();
+                return callback(err);
+            }
+            collection.findOne({
+                "name":name,
+                "title":title,
+                "time.minute":minute
+            },function(err,doc){
+                mongo.close();
+                if(err){
+                    return callback(err);
+                }
+                doc.post = markdown.toHTML(doc.post);
+                return callback(null,doc);
+            })
+        })
+    })
+}
+
