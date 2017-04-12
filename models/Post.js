@@ -53,7 +53,7 @@ Post.prototype.save = function(callback){
     })
 }
 //获取所有的文章(根据name条件)
-Post.getAll = function(name,callback){
+Post.getTen = function(name,page,callback){
     mongo.open(function(err,db){
         if(err){
             return callback(err);
@@ -67,17 +67,24 @@ Post.getAll = function(name,callback){
             if(name){
                 query.name = name;
             }
-            collection.find(query).sort({time:-1}).toArray(function(err,docs){
-                mongo.close();
-                if(err){
-                    return callback(err);
-                }
-                //把文章的格式，先用markdown解析一下
-                //这样，用户就可以直接在内容中使用markdown的语法
-                docs.forEach(function(doc){
-                    doc.post = markdown.toHTML(doc.post);
+            //重新设计
+            collection.count(query,function(err,total){
+                collection.find(query,{
+                    skip:(page - 1) * 10,
+                    limit:10
+                }).sort({
+                    time:-1
+                }).toArray(function(err,docs){
+                    mongo.close();
+                    if(err){
+                        return callback(err);
+                    }
+                    //解析markdown
+                    docs.forEach(function(doc){
+                        doc.post = markdown.toHTML(doc.post)
+                    })
+                    callback(null,docs,total);
                 })
-                return callback(null,docs);//数组形式返回所有的文章.
             })
         })
     })

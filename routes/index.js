@@ -42,7 +42,9 @@ function checkNotLogin(req,res,next){
 module.exports = function(app){
     //首页的路由
     app.get('/',function(req,res){
-        Post.getAll(null,function(err,posts){
+        //获取到当前的页数
+        var page = parseInt(req.query.p) || 1;
+        Post.getTen(null,page,function(err,posts,total){
             if(err){
                 posts = [];
             }
@@ -51,7 +53,13 @@ module.exports = function(app){
                 user:req.session.user,
                 success:req.flash('success').toString(),
                 error:req.flash('error').toString(),
-                posts:posts
+                posts:posts,
+                //当前页数
+                page:page,
+                //是否是第一页
+                isFirstPage:(page - 1) == 0,
+                //是否是最后一页
+                isLastPage:((page - 1) * 10) + posts.length == total
             })
         })
     })
@@ -191,6 +199,8 @@ module.exports = function(app){
     })
     //查询用户发布文章列表的路由
     app.get('/u/:name',function(req,res){
+        //当前页数
+        var page = parseInt(req.query.p) || 1;
         User.get(req.params.name,function(err,user){
             if(err){
                 req.flash('error',err);
@@ -200,7 +210,7 @@ module.exports = function(app){
                 req.flash('error','用户名不存在');
                 res.redirect('/');
             }
-            Post.getAll(user.name,function(err,posts){
+            Post.getTen(user.name,page,function(err,total,posts){
                 if(err){
                     req.flash('error',err);
                     res.redirect('/');
@@ -210,7 +220,10 @@ module.exports = function(app){
                     user:req.session.user,
                     success:req.flash('success').toString(),
                     error:req.flash('error').toString(),
-                    posts:posts
+                    posts:posts,
+                    page:page,
+                    isFirstPage:(page - 1) == 0,
+                    isLastPage:((page - 1)*10) + posts.length == total
                 })
             })
 
