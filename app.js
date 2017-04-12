@@ -21,7 +21,7 @@ var MongoStore = require('connect-mongo')(session);
 var setting = require('./setting');
 
 
-
+require('events').EventEmitter.defaultMaxListeners = Infinity;
 
 //引入路由文件
 var routes = require('./routes/index');

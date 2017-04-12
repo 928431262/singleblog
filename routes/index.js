@@ -3,10 +3,12 @@
 var mongo = require('../models/db');
 //加密模块
 var crypto = require('crypto');
-//注册信息操作类
+//引入User操作类
 var User = require('../models/User');
 //引入Post操作类
 var Post = require('../models/Post');
+//引入Comment操作类
+var Comment = require('../models/Comment');
 //上传下载的功能
 //新的使用方法配置multer
 var multer  = require('multer');
@@ -270,5 +272,26 @@ module.exports = function(app){
             req.flash('success','删除成功');
             res.redirect('/');
         })
+    })
+    app.post('/comment/:name/:minute/:title',function(req,res){
+        var date = new Date();
+        var time = date.getFullYear() + '-' + (date.getMonth() < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1 ) + '-' + (date.getDate() < 10 ? '0' + date.getDate() : date.getDate()) + ' ' + (date.getHours() < 10 ? '0' + date.getHours() : date.getHours()) + ':' + (date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes()) + ':' +
+            (date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds());
+        var comment = {
+            name:req.body.name,
+            time:time,
+            content:req.body.content
+        }
+        var newComment = new Comment(req.params.name,req.params.minute,req.params.title,comment);
+        newComment.save(function(err){
+            if(err){
+                req.flash('error',err);
+                res.redirect('back');
+            }
+            req.flash('success','留言成功');
+            res.redirect('back');
+        })
+
+
     })
 }

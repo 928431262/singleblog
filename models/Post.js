@@ -28,7 +28,9 @@ Post.prototype.save = function(callback){
         name:this.name,
         title:this.title,
         time:time,
-        post:this.post
+        post:this.post,
+        //增加一个字段，保存文章的留言
+        comments:[]
     }
     //进行数据库操作
     mongo.open(function(err,db){
@@ -100,7 +102,12 @@ Post.getOne = function(name,minute,title,callback){
                 if(err){
                     return callback(err);
                 }
+                //文章正文的markdown解析
                 doc.post = markdown.toHTML(doc.post);
+                //留言的markdown解析
+                doc.comments.forEach(function(comment){
+                    comment.content = markdown.toHTML(comment.content);
+                })
                 return callback(null,doc);
             })
         })
