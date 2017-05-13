@@ -1,9 +1,21 @@
 <% include header %>
-<form method="post">
+<div class="fa"> &#x3000;
+<form  method="post">
     标题:<br>
     <input type="text" name="title" placeholder="请填写标题" required><br>
+    标签：<br>
+    <input type="text" name="tag1" placeholder="tag1">
+    <input type="text" name="tag2" placeholder="tag2">
+    <input type="text" name="tag3" placeholder="tag3"> <br>
     内容:<br>
     <textarea name="post" placeholder="请填写内容" rows="10" cols="100" required></textarea><br>
-    <input type="submit" value="提交">
+
+    <form class="zhuce" method="post" action="/upload" enctype="multipart/form-data">
+        <input type="file" multiple name="field1"><br>
+        <input class="bu" type="submit" value="提交">
+    </form>
+
+    <!--<input class="bu" type="submit" value="提交">-->
 </form>
+</div>
 <% include footer %>

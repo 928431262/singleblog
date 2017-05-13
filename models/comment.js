@@ -9,8 +9,6 @@ function Comment(name,minute,title,comment,callback){
     this.comment = comment;
 }
 module.exports = Comment
-
-//保存一条留言
 Comment.prototype.save = function(callback){
     var name = this.name;
     var minute = this.minute;

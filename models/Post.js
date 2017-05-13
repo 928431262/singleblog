@@ -1,18 +1,16 @@
 /**
  * Created by hama on 2017/4/10.
  */
-//1.连接数据库
 var mongo = require('./db');
 var markdown = require('markdown').markdown;
-//2.设计Post类
-function Post(name,title,post){
+function Post(name,title,tags,post){
     this.name = name;
     this.title = title;
+    this.tags = tags;
     this.post = post;
+
 }
 module.exports = Post
-
-//3.sava方法用来保存用户发布的文章
 Post.prototype.save = function(callback){
     var date = new Date();
     var time = {
@@ -23,16 +21,15 @@ Post.prototype.save = function(callback){
         minute:date.getFullYear() + '-' + (date.getMonth() < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1 ) + '-' + (date.getDate() < 10 ? '0' + date.getDate() : date.getDate()) + ' ' + (date.getHours() < 10 ? '0' + date.getHours() : date.getHours()) + ':' + (date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes()) + ':' +
         (date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds())
     }
-    //把要存放入数据库的东西放到一个对象中去
     var post = {
         name:this.name,
         title:this.title,
         time:time,
         post:this.post,
-        //增加一个字段，保存文章的留言
-        comments:[]
+        comments:[],
+        tags:this.tags,
+        pv:0
     }
-    //进行数据库操作
     mongo.open(function(err,db){
         if(err){
             return callback(err);
@@ -47,12 +44,11 @@ Post.prototype.save = function(callback){
                 if(err){
                     return callback(err);
                 }
-                return callback(null);//保存文章是不需要返回任何信息的.
+                return callback(null);
             })
         })
     })
 }
-//获取所有的文章(根据name条件)
 Post.getTen = function(name,page,callback){
     mongo.open(function(err,db){
         if(err){
@@ -67,7 +63,6 @@ Post.getTen = function(name,page,callback){
             if(name){
                 query.name = name;
             }
-            //重新设计
             collection.count(query,function(err,total){
                 collection.find(query,{
                     skip:(page - 1) * 10,
@@ -79,7 +74,6 @@ Post.getTen = function(name,page,callback){
                     if(err){
                         return callback(err);
                     }
-                    //解析markdown
                     docs.forEach(function(doc){
                         doc.post = markdown.toHTML(doc.post)
                     })
@@ -89,7 +83,6 @@ Post.getTen = function(name,page,callback){
         })
     })
 }
-//获取一篇文章
 Post.getOne = function(name,minute,title,callback){
     mongo.open(function(err,db){
         if(err){
@@ -105,17 +98,29 @@ Post.getOne = function(name,minute,title,callback){
                 "title":title,
                 "time.minute":minute
             },function(err,doc){
-                mongo.close();
                 if(err){
+                    mongo.close();
                     return callback(err);
                 }
-                //文章正文的markdown解析
-                doc.post = markdown.toHTML(doc.post);
-                //留言的markdown解析
-                doc.comments.forEach(function(comment){
-                    comment.content = markdown.toHTML(comment.content);
-                })
-                return callback(null,doc);
+                if (doc) {
+                    collection.update({
+                        "name": name,
+                        "time.minute": minute,
+                        "title": title
+                    }, {
+                        $inc: {"pv": 1}
+                    }, function (err) {
+                        mongo.close();
+                        if (err) {
+                            return callback(err);
+                        }
+                    });
+                    doc.post = markdown.toHTML(doc.post);
+                    doc.comments.forEach(function (comment) {
+                        comment.content = markdown.toHTML(comment.content);
+                    })
+                    return callback(null, doc);
+                }
             })
         })
     })
@@ -144,7 +149,6 @@ Post.edit = function(name,minute,title,callback){
         })
     })
 }
-//更新文章
 Post.update = function(name,minute,title,post,callback){
     mongo.open(function(err,db){
         if(err){
@@ -195,4 +199,108 @@ Post.remove = function(name,minute,title,callback){
         })
     })
 }
+Post.getArchve = function (callback) {
+    mongo.open(function (err,db) {
+        if(err){
+            return callback(err)
+        }
+        db.collection('posts',function (err,collection) {
+            if(err){
+                mongo.close()
+                return callback(err)
+            }
+            collection.find({},{
+                'name':1,
+                'time':1,
+                'title':1
+            }).sort({
+                time:-1
+            }).toArray(function (err,docs) {
+                mongo.close()
+                if(err){
+                    return callback(err)
+                }
+                return callback(null,docs)
+            })
+        })
+    })
+}
+Post.getTags = function(callback) {
+    mongo.open(function (err, db) {
+        if (err) {
+            return callback(err);
+        }
+        db.collection('posts', function (err, collection) {
+            if (err) {
+                mongo.close();
+                return callback(err);
+            }
+            collection.distinct("tags", function (err, docs) {
+                mongo.close();
+                if (err) {
+                    return callback(err);
+                }
+                callback(null, docs);
+            });
+        });
+    });
+};
+Post.getTag = function(tag, callback) {
+    mongo.open(function (err, db) {
+        if (err) {
+            return callback(err);
+        }
+        db.collection('posts', function (err, collection) {
+            if (err) {
+                mongo.close();
+                return callback(err);
+            }
+            collection.find({
+                "tags": tag
+            }, {
+                "name": 1,
+                "time": 1,
+                "title": 1
+            }).sort({
+                time: -1
+            }).toArray(function (err, docs) {
+                mongo.close();
+                if (err) {
+                    return callback(err);
+                }
+                callback(null, docs);
+            });
+        });
+    });
+};
+Post.search = function(keyword, callback) {
+    mongo.open(function (err, db) {
+        if (err) {
+            return callback(err);
+        }
+        db.collection('posts', function (err, collection) {
+            if (err) {
+                mongodb.close();
+                return callback(err);
+            }
+            var pattern = new RegExp(keyword, "i");
+            collection.find({
+                "title": pattern
+            }, {
+                "name": 1,
+                "time": 1,
+                "title": 1
+            }).sort({
+                time: -1
+            }).toArray(function (err, docs) {
+                mongo.close();
+                if (err) {
+                    return callback(err);
+                }
+                callback(null, docs);
+            });
+        });
+    });
+};
+
 

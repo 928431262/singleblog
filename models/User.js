@@ -1,7 +1,6 @@
 /**
  * Created by hama on 2017/4/7.
  */
-//引入数据库的操作文件
 var mongo = require('./db');
 function User(user){
     this.name = user.name;
@@ -15,8 +14,6 @@ User.prototype.save = function(callback){
         password:this.password,
         email:this.email
     }
-    //数据库操作
-    //1.打开数据库
     mongo.open(function(err,db){
         if(err){
             return callback(err);
@@ -31,7 +28,7 @@ User.prototype.save = function(callback){
                 if(err){
                     return callback(err);
                 }
-                return callback(null,user[0]);//返回数据的用户名.
+                return callback(null,user[0]);
             })
         })
     })
@@ -51,7 +48,7 @@ User.get = function(name,callback){
                 if(err){
                     return callback(err);
                 }
-                return callback(null,user);//返回查到的用户名.
+                return callback(null,user);
             })
         })
     })

@@ -1,11 +1,30 @@
 <% include header %>
-<% posts.forEach(function(post,index){%>
+
+<!--<% include paging %>-->
+<% include footer %>
+
+<div class="bo">  <span class="ying">如果想要发表文章，请写在这里吧</span>
+    <a class="tu" href="#"><img src="../images/5.jpg" alt=""></a>
+</div>
+<div class="content">
+    <h1 class="h1">发表区域</h1>
+    <% posts.forEach(function(post,index){%>
     <p><h2><a href="/u/<%= post.name %>/<%= post.time.minute %>/<%= post.title %>"><%= post.title %></a></h2></p>
     <p class="info">
-        作者:<a href="/u/<%= post.name %>"><%= post.name %></a>
-        日期:<%= post.time.minute %>
+        作者：<a href="/u/<%= post.name %>"><%= post.name %></a> |
+
+        日期：<%= post.time.minute %> |
+        标签：
+        <% post.tags.forEach(function (tag, index) { %>
+        <% if (tag) { %>
+        <a class="tag" href="/tags/<%= tag %>"><%= tag %></a>
+        <% } %>
+        <% }) %>
     </p>
+
     <p><%- post.post %></p>
-<% }) %>
-<% include paging %>
-<% include footer %>
+    <p class="info">阅读：<%= post.pv %> | 评论：<%= post.comments.length %></p>
+    <% }) %>
+
+
+</div>

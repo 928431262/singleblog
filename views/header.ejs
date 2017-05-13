@@ -3,28 +3,47 @@
 <head>
     <meta charset="utf-8">
     <link rel="stylesheet" href="/stylesheets/style.css">
+    <link rel="stylesheet" href="/stylesheets/style.js">
+    <script src='http://cdn.static.runoob.com/libs/jquery/1.10.2/jquery.min.js'></script>
     <title><%= title %></title>
 </head>
 <body>
 <header>
-    <h1><%= title %></h1>
+    <!--<h1><%= title %></h1>-->
 </header>
+<span>
+<form action="/search" method="GET">
+
+</form>
+</span>
+<div class="outer">
+    <span class="biao"><strong><%= title %></strong></span>
 <nav>
-    <span><a href="/">首页</a></span>
+
+
     <% if(user) { %>
+    <div class="deng">
+    <span><a href="/">首页</a></span>
+        <span><a href="/geren">个人中心</a></span>
     <span><a href="/post">发表</a></span>
-    <span><a href="/upload">上传</a></span>
     <span><a href="/logout">退出</a></span>
+    </div>
     <% } else { %>
+    <div class="deng">
     <span><a href="/login">登录</a></span>
     <span><a href="/reg">注册</a></span>
+    </div>
     <% } %>
 </nav>
-<article>
+</div>
+<!--<br>-->
+<!--<input type="text" name="keyword" placeholder="SEARCH" class="search" />-->
+<!--<article>-->
     <% if (success) { %>
-    <div><%= success %></div>
-    <% } %>
-    <% if (error) { %>
-    <div><%= error %> </div>
+
+<% } %>
+<% if (error) { %>
+
+
     <% } %>
 
